@@ -1,5 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public class GOL {
     private static JButton[][] buttons;
 
@@ -9,9 +15,13 @@ public class GOL {
     private static final Color alive = Color.YELLOW;
     private static final Color dead = Color.RED;
 
-    //default width and height for the board
+    //default width and height for the board. Can't change because java swing is weird and I need to find a way to fix it
     private static int width = 30;
     private static int height = 30;
+
+    //default values
+    private static boolean running = false;
+    private static double speed  = 4000;
 
     public static void main(String[] args) {
         //Creates variable screensize
@@ -32,28 +42,20 @@ public class GOL {
         frame.setLayout(new BorderLayout());
         frame.add(panel,BorderLayout.SOUTH);
 
-        grid.setLayout(new GridLayout(height,width));
+        grid.setLayout(new GridLayout(height + 1, width));
 
         //Loading golBoard
         loadBoard(grid);
+        loadSettings(grid);
 
+        //adding stuff to frame
         frame.add(grid,BorderLayout.CENTER);
 
         //Adding Components to the frame.
         frame.getContentPane().add(BorderLayout.SOUTH, panel);
         frame.setVisible(true);
 
-        //This part of the code updates the screen every 4 seconds, until I can find a way to add a button onto the
-        //screen that will manually update it
-        boolean running = true;
-        while(running) {
-            try {
-                Thread.sleep(2000);
-                nextDay();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        start();
     }
 
     //loads a grid of buttons according to the width and height
@@ -83,6 +85,7 @@ public class GOL {
                 buttons[r][c].setPreferredSize(new Dimension(10,10));
                 container.add(buttons[r][c]);
 
+                //Do not remove finalC or finalR or else setCell will return an exception, idk why
                 int finalC = c;
                 int finalR = r;
                 buttons[r][c].addActionListener(e -> setCell(finalR, finalC));
@@ -98,6 +101,60 @@ public class GOL {
                 buttons[r][c].setBackground(space);
             }
         }
+    }
+
+    //---------Everything is commented out until I can fix the bug in my code--------------------
+    
+    public static void loadSettings(Container container) {
+        //Loading buttons
+        //Button startButton = new Button("START");
+        //Button stopButton = new Button("STOP");
+        //Button clearButton = new Button("CLEAR");
+
+        //loading number field
+        JFormattedTextField speedField;
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        speedField = new JFormattedTextField(numberFormat);
+        speedField.setColumns(6);
+
+        //adding action listeners
+        //startButton.addActionListener(e -> start());
+        //stopButton.addActionListener(e -> stop());
+        //clearButton.addActionListener(e -> clearBoard());
+        
+        speedField.addActionListener(e -> setSpeed(Double.parseDouble(speedField.getText()) * 1000));
+
+        //adding to container
+        //container.add(startButton);
+        //container.add(stopButton);
+        container.add(speedField);
+        //container.add(clearButton);
+    }
+
+    public static void start() {
+        running = true;
+        while(running) {
+            try {
+                Thread.sleep((long) getSpeed());
+                nextDay();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void stop() {
+        running = false;
+    }
+
+    //These two methods set and return the speed at which the program runs
+    public static void setSpeed(double newSpeed) {
+        speed = newSpeed;
+        nextDay();
+    }
+
+    public static double getSpeed() {
+        return speed;
     }
 
     //creates cell when empty button is clicked and removes it when a cell is clicked
@@ -172,3 +229,4 @@ public class GOL {
         return neighbors;
     }
 }
+
